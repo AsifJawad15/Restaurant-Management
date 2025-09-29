@@ -62,7 +62,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // Application constants
-define('SITE_URL', 'http://localhost/Restaurant-Management/');
+define('SITE_URL', 'http://restaurant-management.test/');
 define('ADMIN_URL', SITE_URL . 'admin/');
 define('ASSETS_URL', SITE_URL . 'assets/');
 define('UPLOAD_PATH', __DIR__ . '/../assets/images/uploads/');
