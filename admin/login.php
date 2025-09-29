@@ -1,49 +1,62 @@
 <?php
 /**
- * Admin Login Page
+ * Admin Login Page - Simple & Working
  * ASIF - Backend & Database Developer
  */
 
-require_once '../includes/config.php';
+session_start();
+
+// Clear any existing sessions if requested
+if (isset($_GET['clear'])) {
+    session_destroy();
+    session_unset();
+    header('Location: login.php');
+    exit();
+}
 
 // Redirect if already logged in
-if (isAdminLoggedIn()) {
+if (isset($_SESSION['admin_id']) && isset($_SESSION['admin_email'])) {
     header('Location: dashboard.php');
     exit();
+}
+
+// Database connection
+try {
+    $pdo = new PDO("mysql:host=localhost;dbname=restaurant_management", "root", "");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
 }
 
 $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['login'])) {
-        $email = sanitizeInput($_POST['email']);
-        $password = $_POST['password'];
-        
-        if (empty($email) || empty($password)) {
-            $error = 'Please fill in all fields.';
-        } else {
-            try {
-                $conn = getDBConnection();
-                $stmt = $conn->prepare("SELECT id, username, email, password_hash, first_name, last_name FROM users WHERE email = ? AND user_type = 'admin' AND is_active = 1");
-                $stmt->execute([$email]);
-                $admin = $stmt->fetch();
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    
+    if (empty($email) || empty($password)) {
+        $error = 'Please fill in all fields.';
+    } else {
+        try {
+            $stmt = $pdo->prepare("SELECT id, username, email, password_hash, first_name, last_name FROM users WHERE email = ? AND user_type = 'admin' AND is_active = 1");
+            $stmt->execute([$email]);
+            $admin = $stmt->fetch();
+            
+            if ($admin && password_verify($password, $admin['password_hash'])) {
+                // Login successful
+                $_SESSION['admin_id'] = $admin['id'];
+                $_SESSION['admin_email'] = $admin['email'];
+                $_SESSION['admin_name'] = $admin['first_name'] . ' ' . $admin['last_name'];
+                $_SESSION['admin_username'] = $admin['username'];
                 
-                if ($admin && password_verify($password, $admin['password_hash'])) {
-                    // Login successful
-                    $_SESSION['admin_id'] = $admin['id'];
-                    $_SESSION['admin_email'] = $admin['email'];
-                    $_SESSION['admin_name'] = $admin['first_name'] . ' ' . $admin['last_name'];
-                    $_SESSION['admin_username'] = $admin['username'];
-                    
-                    header('Location: dashboard.php');
-                    exit();
-                } else {
-                    $error = 'Invalid email or password.';
-                }
-            } catch (PDOException $e) {
-                $error = 'Database error. Please try again.';
+                header('Location: dashboard.php');
+                exit();
+            } else {
+                $error = 'Invalid email or password.';
             }
+        } catch (PDOException $e) {
+            $error = 'Database error: ' . $e->getMessage();
         }
     }
 }
@@ -56,104 +69,161 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Admin Login - Delicious Restaurant</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="../assets/css/admin.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #2c1810 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+        .restaurant-icon {
+            font-size: 3.5rem;
+            color: #d4af37;
+            margin-bottom: 1rem;
+        }
+        .restaurant-name {
+            color: #2c1810;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+        .login-subtitle {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+        .form-control {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 1rem;
+        }
+        .form-control:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+        }
+        .login-btn {
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            border: none;
+            padding: 12px 20px;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .alert {
+            border-radius: 8px;
+            border: none;
+            padding: 12px 15px;
+        }
+        .back-link {
+            color: #d4af37;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #b8941f;
+        }
+        .demo-note {
+            background: rgba(255, 193, 7, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+    </style>
 </head>
-<body class="login-page">
-    <div class="login-container">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-6 col-lg-4">
-                    <div class="login-card">
-                        <div class="login-header text-center mb-4">
-                            <div class="logo-section">
-                                <i class="fas fa-utensils restaurant-icon"></i>
-                                <h2 class="restaurant-name">Delicious Restaurant</h2>
-                                <p class="login-subtitle">Admin Portal</p>
-                            </div>
-                        </div>
-                        
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger" role="alert">
-                                <i class="fas fa-exclamation-triangle"></i> <?php echo $error; ?>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if ($success): ?>
-                            <div class="alert alert-success" role="alert">
-                                <i class="fas fa-check-circle"></i> <?php echo $success; ?>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <form method="POST" action="">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">
-                                    <i class="fas fa-envelope"></i> Email Address
-                                </label>
-                                <input type="email" class="form-control" id="email" name="email" 
-                                       placeholder="Enter your email" required 
-                                       value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : 'admin@restaurant.com'; ?>">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="password" class="form-label">
-                                    <i class="fas fa-lock"></i> Password
-                                </label>
-                                <div class="password-input-group">
-                                    <input type="password" class="form-control" id="password" name="password" 
-                                           placeholder="Enter your password" required value="pass1234">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword()">
-                                        <i class="fas fa-eye" id="toggleIcon"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="remember">
-                                <label class="form-check-label" for="remember">
-                                    Remember me
-                                </label>
-                            </div>
-                            
-                            <button type="submit" name="login" class="btn btn-primary w-100 login-btn">
-                                <i class="fas fa-sign-in-alt"></i> Login to Dashboard
-                            </button>
-                        </form>
-                        
-                        <div class="login-footer text-center mt-4">
-                            <p class="demo-credentials">
-                                <small class="text-muted">
-                                    <i class="fas fa-info-circle"></i> 
-                                    Demo credentials are pre-filled
-                                </small>
-                            </p>
-                            <p class="back-to-site">
-                                <a href="../index.php" class="text-decoration-none">
-                                    <i class="fas fa-arrow-left"></i> Back to Restaurant
-                                </a>
-                            </p>
-                        </div>
-                    </div>
-                </div>
+<body>
+    <div class="login-card">
+        <div class="text-center">
+            <i class="fas fa-utensils restaurant-icon"></i>
+            <h2 class="restaurant-name">Delicious Restaurant</h2>
+            <p class="login-subtitle">Admin Portal</p>
+        </div>
+        
+        <?php if ($error): ?>
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i><?php echo $error; ?>
             </div>
+        <?php endif; ?>
+        
+        <?php if ($success): ?>
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle me-2"></i><?php echo $success; ?>
+            </div>
+        <?php endif; ?>
+        
+        <form method="POST" action="">
+            <div class="mb-3">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope me-2"></i>Email Address
+                </label>
+                <input type="email" class="form-control" id="email" name="email" 
+                       placeholder="Enter your email" required 
+                       value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : 'admin@restaurant.com'; ?>">
+            </div>
+            
+            <div class="mb-3">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Password
+                </label>
+                <input type="password" class="form-control" id="password" name="password" 
+                       placeholder="Enter your password" required value="pass1234">
+            </div>
+            
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="remember">
+                <label class="form-check-label" for="remember">
+                    Remember me
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100 login-btn">
+                <i class="fas fa-sign-in-alt me-2"></i>Login to Dashboard
+            </button>
+        </form>
+        
+        <div class="demo-note text-center">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Demo credentials are pre-filled
+            </small>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="../index.php" class="back-link">
+                <i class="fas fa-arrow-left me-2"></i>Back to Restaurant
+            </a>
+        </div>
+        
+        <div class="text-center mt-2">
+            <a href="?clear=1" class="text-muted small">
+                <i class="fas fa-refresh me-1"></i>Clear Session
+            </a>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const toggleIcon = document.getElementById('toggleIcon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-        }
-    </script>
 </body>
 </html>
