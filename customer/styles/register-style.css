@@ -1,0 +1,23 @@
+/* this is designed by Apu Sharma */
+
+body {
+    background: #f7f9fc;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.register-container { width: 100%; max-width: 720px; padding: 20px; }
+.register-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    padding: 30px;
+}
+.btn-primary { border-radius: 10px; padding: 10px 16px; }
+.form-control { border-radius: 10px; }
+.btn-link { color: #667eea; text-decoration: none; }
+.btn-link:hover { text-decoration: underline; }
+

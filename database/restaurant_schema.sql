@@ -203,8 +203,8 @@ CREATE TABLE settings (
 );
 
 -- Insert default admin user (password: pass1234)
-INSERT INTO users (username, email, password_hash, first_name, last_name, user_type) 
-VALUES ('admin', 'admin@restaurant.com', '$2y$10$WjKnj7vgWF6k5XJhv0rH5OE7yQs0n8UH5Z9mJ4kWGjK2pL4mN6oQ.', 'Admin', 'User', 'admin');
+INSERT INTO users (username, email, password_hash, first_name, last_name, user_type, is_active) 
+VALUES ('admin', 'admin@restaurant.com', '$2y$10$WjKnj7vgWF6k5XJhv0rH5OE7yQs0n8UH5Z9mJ4kWGjK2pL4mN6oQ.', 'Admin', 'User', 'admin', 1);
 
 -- Insert sample categories
 INSERT INTO categories (name, description, sort_order) VALUES
