@@ -51,15 +51,15 @@ function getDBConnection() {
     return $database->getConnection();
 }
 
-// Session configuration (must be set before session_start)
+// Session configuration
 if (session_status() == PHP_SESSION_NONE) {
-    // Set session settings before starting session
-    ini_set('session.cookie_httponly', 1);
-    ini_set('session.use_only_cookies', 1);
-    ini_set('session.cookie_secure', 0); // Set to 1 for HTTPS
-    
     session_start();
 }
+
+// Security configurations
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_secure', 0); // Set to 1 for HTTPS
 
 // Application constants
 define('SITE_URL', 'http://restaurant-management.test/');
