@@ -23,6 +23,14 @@ try {
     $stmt = $conn->query("SELECT COUNT(*) as total FROM menu_items WHERE is_available = 1");
     $totalMenuItems = $stmt->fetch()['total'];
     
+    // Total categories
+    $stmt = $conn->query("SELECT COUNT(*) as total FROM categories WHERE is_active = 1");
+    $totalCategories = $stmt->fetch()['total'];
+    
+    // Featured items count
+    $stmt = $conn->query("SELECT COUNT(*) as total FROM menu_items WHERE is_featured = 1 AND is_available = 1");
+    $featuredItems = $stmt->fetch()['total'];
+    
     // Pending orders
     $stmt = $conn->query("SELECT COUNT(*) as total FROM orders WHERE status IN ('pending', 'confirmed', 'preparing')");
     $pendingOrders = $stmt->fetch()['total'];
@@ -86,15 +94,15 @@ try {
                 
                 <div class="nav-section">Menu Management</div>
                 <li class="nav-item">
-                    <a href="menu-items.php" class="nav-link">
-                        <i class="fas fa-utensils"></i>
-                        <span>Menu Items</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a href="categories.php" class="nav-link">
                         <i class="fas fa-tags"></i>
                         <span>Categories</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="menu-items.php" class="nav-link">
+                        <i class="fas fa-utensils"></i>
+                        <span>Menu Items</span>
                     </a>
                 </li>
                 
@@ -254,9 +262,9 @@ try {
                                 <i class="fas fa-utensils"></i>
                             </div>
                             <h3 class="stats-number"><?php echo $totalMenuItems; ?></h3>
-                            <p class="stats-label">Active Menu Items</p>
+                            <p class="stats-label">Menu Items</p>
                             <p class="stats-change">
-                                <i class="fas fa-minus"></i> No change
+                                <i class="fas fa-tags"></i> <?php echo $totalCategories; ?> categories
                             </p>
                         </div>
                     </div>
@@ -264,13 +272,51 @@ try {
                     <div class="col-lg-3 col-md-6 mb-3">
                         <div class="stats-card">
                             <div class="stats-icon warning">
-                                <i class="fas fa-clock"></i>
+                                <i class="fas fa-star"></i>
                             </div>
-                            <h3 class="stats-number"><?php echo $pendingOrders; ?></h3>
-                            <p class="stats-label">Pending Orders</p>
+                            <h3 class="stats-number"><?php echo $featuredItems; ?></h3>
+                            <p class="stats-label">Featured Items</p>
                             <p class="stats-change">
-                                <i class="fas fa-exclamation-triangle"></i> Needs attention
+                                <i class="fas fa-clock"></i> <?php echo $pendingOrders; ?> pending orders
                             </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Management Quick Actions -->
+                <div class="row mb-4">
+                    <div class="col-lg-12">
+                        <div class="stats-card">
+                            <h5 class="mb-3">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                Quick Menu Actions
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <a href="categories.php" class="btn btn-outline-primary w-100 mb-2">
+                                        <i class="fas fa-tags me-2"></i>
+                                        Manage Categories
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="menu-items.php" class="btn btn-outline-primary w-100 mb-2">
+                                        <i class="fas fa-utensils me-2"></i>
+                                        Manage Menu Items
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="menu-items.php?category=0" class="btn btn-outline-info w-100 mb-2">
+                                        <i class="fas fa-star me-2"></i>
+                                        View Featured Items
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="#" onclick="alert('Coming soon!')" class="btn btn-outline-success w-100 mb-2">
+                                        <i class="fas fa-chart-bar me-2"></i>
+                                        Menu Analytics
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
