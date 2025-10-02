@@ -1,5 +1,3 @@
-//developed by Apu Sharma
-
 <?php
 require_once 'bootstrap.php';
 
