@@ -1,0 +1,364 @@
+================================================================================
+        RESTAURANT MANAGEMENT SYSTEM - LEVEL 2 DATA FLOW DIAGRAM (DFD)
+================================================================================
+
+PROJECT: Restaurant Management System
+CREATED BY: ASIF (Backend & Database Developer)
+DATE: October 5, 2025
+BRANCH: asif-backend
+
+================================================================================
+                            LEGEND / SYMBOLS
+================================================================================
+
+[SQUARE]    = External Entity (Users/Systems outside the system boundary)
+(CIRCLE)    = Process (Business operations/functions)
+||DATABASE||= Data Store (Database tables/file storage)
+----->      = Data Flow (Direction of data movement with label)
+
+================================================================================
+                        EXTERNAL ENTITIES (SQUARES)
+================================================================================
+
+[Customer]          - End users who place orders, make reservations
+[Admin]             - System administrators managing the restaurant
+[Kitchen Staff]     - Staff preparing orders
+[Payment Gateway]   - External payment processing system
+[Delivery Partner]  - Third-party delivery service providers
+
+================================================================================
+                    LEVEL 2 DFD - DETAILED BREAKDOWN
+================================================================================
+
+
+1. CUSTOMER AUTHENTICATION & REGISTRATION SUBSYSTEM
+================================================================================
+
+[Customer] ---registration_data---> (1.1 Register Customer) ---customer_details---> ||users||
+                                            |
+                                            |---profile_data---> ||customer_profiles||
+                                            |
+                                            |<--registration_confirmation---
+
+[Customer] ---login_credentials---> (1.2 Authenticate Customer) <---user_credentials--- ||users||
+                                            |
+                                            |---session_token--->
+                                            |
+                                            |---login_success---> [Customer]
+
+
+2. MENU MANAGEMENT SUBSYSTEM
+================================================================================
+
+[Admin] ---category_data---> (2.1 Manage Categories) <---category_info--- ||categories||
+                                      |
+                                      |---category_updates---> ||categories||
+                                      |
+                                      |---category_list---> [Admin]
+
+[Admin] ---menu_item_data---> (2.2 Manage Menu Items) <---item_info--- ||menu_items||
+                                      |
+                                      |---item_updates---> ||menu_items||
+                                      |
+                                      |<---category_list--- ||categories||
+                                      |
+                                      |---menu_list---> [Admin]
+
+[Customer] ---browse_request---> (2.3 Display Menu) <---menu_data--- ||menu_items||
+                                      |
+                                      |<---category_data--- ||categories||
+                                      |
+                                      |---menu_view---> [Customer]
+
+
+3. ORDER PROCESSING SUBSYSTEM
+================================================================================
+
+[Customer] ---order_request---> (3.1 Create Order) <---menu_validation--- ||menu_items||
+                                      |
+                                      |---order_data---> ||orders||
+                                      |
+                                      |---order_items---> ||order_items||
+                                      |
+                                      |---order_confirmation---> [Customer]
+
+[Admin] ---view_request---> (3.2 View Orders) <---order_list--- ||orders||
+                                      |
+                                      |<---customer_info--- ||users||
+                                      |<---item_details--- ||order_items||
+                                      |
+                                      |---order_display---> [Admin]
+
+[Admin] ---status_update---> (3.3 Update Order Status) ---status_change---> ||orders||
+                                      |
+                                      |<---current_order--- ||orders||
+                                      |
+                                      |---status_notification---> [Customer]
+                                      |
+                                      |---kitchen_notification---> [Kitchen Staff]
+
+[Kitchen Staff] ---preparation_status---> (3.4 Process Kitchen Orders) <---pending_orders--- ||orders||
+                                      |
+                                      |<---order_details--- ||order_items||
+                                      |<---menu_info--- ||menu_items||
+                                      |
+                                      |---order_ready_status---> ||orders||
+                                      |
+                                      |---ready_notification---> [Admin]
+
+
+4. PAYMENT PROCESSING SUBSYSTEM
+================================================================================
+
+[Customer] ---payment_info---> (4.1 Process Payment) <---order_amount--- ||orders||
+                                      |
+                                      |---payment_request---> [Payment Gateway]
+                                      |
+[Payment Gateway] ---payment_response---> |
+                                      |
+                                      |---payment_status---> ||orders||
+                                      |
+                                      |---payment_confirmation---> [Customer]
+                                      |
+                                      |---transaction_record---> ||payments||
+
+[Admin] ---payment_query---> (4.2 Manage Payments) <---payment_data--- ||orders||
+                                      |
+                                      |<---transaction_history--- ||payments||
+                                      |
+                                      |---payment_update---> ||orders||
+                                      |
+                                      |---payment_report---> [Admin]
+
+
+5. RESERVATION MANAGEMENT SUBSYSTEM
+================================================================================
+
+[Customer] ---reservation_request---> (5.1 Create Reservation) <---table_availability--- ||tables||
+                                      |
+                                      |---reservation_data---> ||reservations||
+                                      |
+                                      |---confirmation---> [Customer]
+
+[Admin] ---view_request---> (5.2 Manage Reservations) <---reservation_list--- ||reservations||
+                                      |
+                                      |<---customer_info--- ||users||
+                                      |<---table_info--- ||tables||
+                                      |
+                                      |---status_update---> ||reservations||
+                                      |
+                                      |---reservation_display---> [Admin]
+
+[Admin] ---table_data---> (5.3 Manage Tables) <---table_list--- ||tables||
+                                      |
+                                      |---table_updates---> ||tables||
+                                      |
+                                      |---table_status---> [Admin]
+
+
+6. INVENTORY MANAGEMENT SUBSYSTEM
+================================================================================
+
+[Admin] ---ingredient_data---> (6.1 Manage Inventory) <---inventory_list--- ||inventory||
+                                      |
+                                      |---inventory_updates---> ||inventory||
+                                      |
+                                      |---low_stock_alert---> [Admin]
+
+||orders|| ---order_placed---> (6.2 Update Stock Levels) <---current_stock--- ||inventory||
+                                      |
+                                      |<---recipe_info--- ||menu_items||
+                                      |
+                                      |---stock_deduction---> ||inventory||
+                                      |
+                                      |---reorder_alert---> [Admin]
+
+
+7. STAFF MANAGEMENT SUBSYSTEM
+================================================================================
+
+[Admin] ---staff_data---> (7.1 Manage Staff) <---staff_list--- ||staff||
+                                      |
+                                      |---staff_updates---> ||staff||
+                                      |
+                                      |<---user_accounts--- ||users||
+                                      |
+                                      |---staff_info---> [Admin]
+
+[Admin] ---schedule_data---> (7.2 Manage Schedules) <---staff_info--- ||staff||
+                                      |
+                                      |---shift_data---> ||staff_schedules||
+                                      |
+                                      |---schedule_display---> [Admin]
+                                      |
+                                      |---shift_notification---> [Kitchen Staff]
+
+
+8. CUSTOMER MANAGEMENT SUBSYSTEM
+================================================================================
+
+[Admin] ---search_query---> (8.1 View Customers) <---customer_list--- ||users||
+                                      |
+                                      |<---profile_data--- ||customer_profiles||
+                                      |<---order_history--- ||orders||
+                                      |
+                                      |---customer_details---> [Admin]
+
+[Customer] ---profile_update---> (8.2 Update Profile) <---current_profile--- ||customer_profiles||
+                                      |
+                                      |---updated_data---> ||customer_profiles||
+                                      |
+                                      |<---user_info--- ||users||
+                                      |
+                                      |---profile_confirmation---> [Customer]
+
+[Customer] ---order_query---> (8.3 View Order History) <---order_data--- ||orders||
+                                      |
+                                      |<---order_items--- ||order_items||
+                                      |<---menu_info--- ||menu_items||
+                                      |
+                                      |---order_list---> [Customer]
+
+
+9. REVIEW & FEEDBACK SUBSYSTEM
+================================================================================
+
+[Customer] ---review_data---> (9.1 Submit Review) <---order_validation--- ||orders||
+                                      |
+                                      |---review_info---> ||reviews||
+                                      |
+                                      |---review_confirmation---> [Customer]
+
+[Admin] ---moderation_request---> (9.2 Moderate Reviews) <---review_list--- ||reviews||
+                                      |
+                                      |<---customer_info--- ||users||
+                                      |<---menu_info--- ||menu_items||
+                                      |
+                                      |---review_update---> ||reviews||
+                                      |
+                                      |---moderation_result---> [Admin]
+
+
+10. REPORTING & ANALYTICS SUBSYSTEM
+================================================================================
+
+[Admin] ---report_request---> (10.1 Generate Sales Report) <---order_data--- ||orders||
+                                      |
+                                      |<---payment_data--- ||payments||
+                                      |<---menu_data--- ||menu_items||
+                                      |
+                                      |---sales_report---> [Admin]
+
+[Admin] ---analytics_request---> (10.2 Generate Analytics) <---order_trends--- ||orders||
+                                      |
+                                      |<---customer_data--- ||users||
+                                      |<---item_popularity--- ||order_items||
+                                      |<---revenue_data--- ||payments||
+                                      |
+                                      |---analytics_dashboard---> [Admin]
+
+[Admin] ---inventory_report_req---> (10.3 Inventory Reports) <---stock_levels--- ||inventory||
+                                      |
+                                      |<---usage_data--- ||order_items||
+                                      |
+                                      |---inventory_report---> [Admin]
+
+
+================================================================================
+                            DATA STORES (DATABASES)
+================================================================================
+
+||users||                  - User accounts (admin, customers)
+||customer_profiles||      - Extended customer information
+||categories||             - Menu categories
+||menu_items||             - Restaurant menu items
+||orders||                 - Customer orders
+||order_items||            - Individual items in orders
+||payments||               - Payment transactions
+||reservations||           - Table reservations
+||tables||                 - Restaurant tables
+||inventory||              - Ingredient stock
+||staff||                  - Staff members
+||staff_schedules||        - Staff work schedules
+||reviews||                - Customer reviews and ratings
+
+================================================================================
+                        MAJOR DATA FLOWS SUMMARY
+================================================================================
+
+INPUT FLOWS (From External Entities):
+- Registration/Login credentials from [Customer]
+- Order requests from [Customer]
+- Payment information from [Customer]
+- Payment confirmations from [Payment Gateway]
+- Menu/Category management from [Admin]
+- Inventory updates from [Admin]
+- Order status updates from [Kitchen Staff]
+
+OUTPUT FLOWS (To External Entities):
+- Order confirmations to [Customer]
+- Payment receipts to [Customer]
+- Reservation confirmations to [Customer]
+- Order notifications to [Kitchen Staff]
+- Reports and analytics to [Admin]
+- Stock alerts to [Admin]
+
+INTERNAL FLOWS:
+- Order data between order processing and payment
+- Menu data between menu management and order processing
+- Inventory updates between order processing and inventory
+- Customer data between authentication and order processing
+- Payment status between payment gateway and order management
+
+================================================================================
+                        SYSTEM BOUNDARIES
+================================================================================
+
+WITHIN SYSTEM:
+- All processes (1.1 - 10.3)
+- All data stores (||databases||)
+- Internal data flows
+
+OUTSIDE SYSTEM:
+- External entities ([SQUARES])
+- Payment gateway integration
+- Delivery partner systems
+- Customer devices/browsers
+
+================================================================================
+                            NOTES
+================================================================================
+
+1. This Level 2 DFD breaks down the main system into 10 major subsystems
+2. Each process is numbered (e.g., 1.1, 1.2) for hierarchical organization
+3. Data flows are labeled to show what information moves between components
+4. All processes interact with appropriate data stores
+5. External entities interact only with processes, not directly with data stores
+6. Bidirectional flows are shown with separate arrows for clarity
+
+================================================================================
+                        IMPLEMENTATION STATUS
+================================================================================
+
+COMPLETED:
+✅ Customer Authentication (1.1, 1.2)
+✅ Menu Management (2.1, 2.2, 2.3)
+✅ Basic Order Processing (3.1, 3.2, 3.3)
+✅ Admin Dashboard
+
+IN PROGRESS:
+🔄 Order Details View (3.2 - Enhanced)
+🔄 Category Management (2.1 - Enhanced)
+
+PENDING:
+⏳ Payment Processing (4.1, 4.2)
+⏳ Reservation Management (5.1, 5.2, 5.3)
+⏳ Inventory Management (6.1, 6.2)
+⏳ Staff Management (7.1, 7.2)
+⏳ Customer Management (8.1, 8.2, 8.3)
+⏳ Review & Feedback (9.1, 9.2)
+⏳ Reporting & Analytics (10.1, 10.2, 10.3)
+
+================================================================================
+                            END OF DFD
+================================================================================
