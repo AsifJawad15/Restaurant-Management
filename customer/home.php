@@ -12,8 +12,25 @@ $user = $auth->getCurrentUser();
 // Fetch categories and menu items
 $categories = $db->query("SELECT id, name FROM categories WHERE is_active=1 ORDER BY sort_order, name")->fetchAll();
 
-// Get menu items grouped by category
-$stmt = $db->query("SELECT m.id, m.category_id, m.name, m.description, m.price, m.image_url, c.name AS category_name FROM menu_items m JOIN categories c ON c.id = m.category_id WHERE m.is_available=1 ORDER BY c.sort_order, m.name");
+// Get menu items grouped by category with reviews
+$stmt = $db->query("
+    SELECT 
+        m.id, 
+        m.category_id, 
+        m.name, 
+        m.description, 
+        m.price, 
+        m.image_url, 
+        c.name AS category_name,
+        COALESCE(AVG(r.rating), 0) as avg_rating,
+        COUNT(r.id) as review_count
+    FROM menu_items m 
+    JOIN categories c ON c.id = m.category_id 
+    LEFT JOIN reviews r ON r.menu_item_id = m.id
+    WHERE m.is_available=1 
+    GROUP BY m.id, m.category_id, m.name, m.description, m.price, m.image_url, c.name, c.sort_order
+    ORDER BY c.sort_order, m.name
+");
 $items = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
@@ -46,6 +63,9 @@ $items = $stmt->fetchAll();
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="reservations.php"><i class="fas fa-calendar-alt me-1"></i>Reservations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="reviews.php"><i class="fas fa-star me-1"></i>Reviews</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="orders.php"><i class="fas fa-receipt me-1"></i>Orders</a>
@@ -85,6 +105,37 @@ $items = $stmt->fetchAll();
                                     <span><?php echo htmlspecialchars($i['name']); ?></span>
                                     <span class="price">$<?php echo number_format((float)$i['price'], 2); ?></span>
                                 </h5>
+                                
+                                <!-- Rating Display -->
+                                <?php if ($i['review_count'] > 0): ?>
+                                    <div class="mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="star-rating text-warning me-2">
+                                                <?php 
+                                                $rating = round($i['avg_rating'], 1);
+                                                for ($star = 1; $star <= 5; $star++): 
+                                                    if ($star <= $rating): ?>
+                                                        <i class="fas fa-star"></i>
+                                                    <?php elseif ($star - 0.5 <= $rating): ?>
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    <?php else: ?>
+                                                        <i class="far fa-star"></i>
+                                                    <?php endif;
+                                                endfor; ?>
+                                            </div>
+                                            <small class="text-muted">
+                                                <?php echo number_format($rating, 1); ?> (<?php echo $i['review_count']; ?> review<?php echo $i['review_count'] > 1 ? 's' : ''; ?>)
+                                            </small>
+                                        </div>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="far fa-star me-1"></i>No reviews yet
+                                        </small>
+                                    </div>
+                                <?php endif; ?>
+                                
                                 <p class="card-text text-muted small flex-grow-1"><?php echo htmlspecialchars($i['description']); ?></p>
                                 <div class="d-flex">
                                     <div class="input-group me-2" style="width: 120px;">

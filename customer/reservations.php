@@ -147,6 +147,7 @@ $max_date = date('Y-m-d', strtotime('+60 days')); // Allow bookings up to 60 day
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link" href="home.php">Menu</a></li>
                     <li class="nav-item"><a class="nav-link active" href="reservations.php">Reservations</a></li>
+                    <li class="nav-item"><a class="nav-link" href="reviews.php">Reviews</a></li>
                     <li class="nav-item"><a class="nav-link" href="orders.php">Orders</a></li>
                 </ul>
                 <ul class="navbar-nav ms-auto">
