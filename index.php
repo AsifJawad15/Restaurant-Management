@@ -1,4 +1,33 @@
 
+<?php
+require_once 'includes/config.php';
+
+// Fetch recent reviews for the landing page carousel
+$reviews = [];
+try {
+    $db = getDBConnection();
+    $stmt = $db->prepare("
+        SELECT 
+            r.*,
+            CONCAT(u.first_name, ' ', u.last_name) as customer_name,
+            mi.name as item_name,
+            c.name as category_name
+        FROM reviews r
+        JOIN users u ON r.customer_id = u.id
+        JOIN menu_items mi ON r.menu_item_id = mi.id
+        JOIN categories c ON mi.category_id = c.id
+        WHERE r.is_verified = 1 AND r.comment IS NOT NULL AND r.comment != ''
+        ORDER BY r.created_at DESC
+        LIMIT 10
+    ");
+    $stmt->execute();
+    $reviews = $stmt->fetchAll();
+} catch (Exception $e) {
+    // Silently handle errors for landing page
+    $reviews = [];
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -144,6 +173,88 @@
             </div>
         </div>
     </div>
+    
+    <!-- Customer Reviews Carousel Section -->
+    <?php if (!empty($reviews)): ?>
+    <section class="reviews-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="mb-3">
+                    <i class="fas fa-star text-warning me-3"></i>
+                    What Our Customers Say
+                </h2>
+                <p class="lead">Real reviews from our valued customers</p>
+            </div>
+            
+            <div class="reviews-carousel-container">
+                <!-- Single Fixed Review Display -->
+                <div class="single-review-display" id="reviewDisplay">
+                    <div class="review-card">
+                        <div class="card h-100 border-0">
+                            <div class="card-body text-center p-5">
+                                <!-- Star Rating -->
+                                <div class="star-rating mb-4" id="reviewStars">
+                                    <!-- Stars will be populated by JavaScript -->
+                                </div>
+                                
+                                <!-- Review Comment -->
+                                <blockquote class="blockquote">
+                                    <p class="mb-0" id="reviewComment">Loading review...</p>
+                                </blockquote>
+                                
+                                <!-- Customer Info -->
+                                <div class="customer-info">
+                                    <h6 class="mb-2" id="reviewCustomer">Customer Name</h6>
+                                    <small class="text-muted d-block" id="reviewItem">
+                                        <i class="fas fa-utensils me-2"></i>
+                                        Menu Item
+                                    </small>
+                                    <small class="text-muted d-block" id="reviewDate">
+                                        <i class="fas fa-calendar me-2"></i>
+                                        Date
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hidden Reviews Data for JavaScript -->
+                <script type="application/json" id="reviewsData">
+                    <?php echo json_encode($reviews); ?>
+                </script>
+                
+                <!-- Carousel Navigation -->
+                <?php if (count($reviews) > 1): ?>
+                <div class="carousel-navigation text-center">
+                    <button class="btn btn-outline-primary me-3" id="prevReview" title="Previous Review">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    
+                    <!-- Dots indicator -->
+                    <div class="carousel-dots d-inline-block mx-3">
+                        <?php for ($i = 0; $i < count($reviews); $i++): ?>
+                            <button class="dot <?php echo $i === 0 ? 'active' : ''; ?>" data-slide="<?php echo $i; ?>" title="Review <?php echo $i + 1; ?>"></button>
+                        <?php endfor; ?>
+                    </div>
+                    
+                    <button class="btn btn-outline-primary ms-3" id="nextReview" title="Next Review">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Call to Action -->
+                <div class="text-center">
+                    <a href="customer/login.php?redirect=reviews.php" class="btn btn-warning">
+                        <i class="fas fa-star me-2"></i>
+                        Share Your Experience
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="scripts/script.js"></script>
