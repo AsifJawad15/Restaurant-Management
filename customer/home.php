@@ -51,7 +51,7 @@ $items = $stmt->fetchAll();
                         <a class="nav-link" href="profile.php"><i class="fas fa-user me-1"></i>Profile</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-outline-secondary" href="../admin/logout.php"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+                        <a class="btn btn-outline-secondary" href="logout.php"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
                     </li>
                 </ul>
             </div>
