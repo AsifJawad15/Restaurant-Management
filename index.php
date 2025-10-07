@@ -117,6 +117,29 @@
                             </a>
                         </div>
                     </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="text-center">
+                                <h5 class="text-dark mb-3">Quick Actions</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <a href="customer/login.php?redirect=reservations.php" class="btn btn-primary btn-lg w-100">
+                                            <i class="fas fa-calendar-alt me-2"></i>Make a Reservation
+                                        </a>
+                                        <small class="text-muted d-block mt-1">Book your table online</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <a href="customer/login.php?redirect=home.php" class="btn btn-outline-primary btn-lg w-100">
+                                            <i class="fas fa-utensils me-2"></i>View Menu
+                                        </a>
+                                        <small class="text-muted d-block mt-1">Browse our delicious menu</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

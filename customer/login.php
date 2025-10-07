@@ -3,9 +3,12 @@ require_once 'bootstrap.php';
 
 $auth = new Auth();
 
+// Get redirect parameter
+$redirect = $_GET['redirect'] ?? 'home.php';
+
 // Redirect if already logged in as customer
 if ($auth->isSessionValid() && $auth->isCustomer()) {
-    redirect('home.php');
+    redirect($redirect);
 }
 
 $error = '';
@@ -13,13 +16,14 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
     $username = sanitizeInput($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
+    $redirect_after = $_POST['redirect'] ?? 'home.php';
     
     if ($username === '' || $password === '') {
         $error = 'Please fill in all fields.';
     } else {
         $result = $auth->login($username, $password);
         if ($result['success'] && $result['user_type'] === 'customer') {
-            redirect('home.php');
+            redirect($redirect_after);
         } else {
             $error = 'Invalid credentials or account type.';
         }
@@ -56,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             <form method="POST" action="" class="login-form">
                 <input type="hidden" name="action" value="login">
+                <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
                 
                 <div class="form-group">
                     <label for="username" class="form-label">

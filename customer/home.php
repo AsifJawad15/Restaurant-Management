@@ -45,6 +45,9 @@ $items = $stmt->fetchAll();
                         <span class="text-muted">Hi, <?php echo htmlspecialchars($user['first_name']); ?></span>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="reservations.php"><i class="fas fa-calendar-alt me-1"></i>Reservations</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="orders.php"><i class="fas fa-receipt me-1"></i>Orders</a>
                     </li>
                     <li class="nav-item">
