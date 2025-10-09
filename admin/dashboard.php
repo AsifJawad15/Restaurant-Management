@@ -124,10 +124,11 @@ try {
                 </li>
                 
                 <div class="nav-section">Customer Management</div>
+               
                 <li class="nav-item">
-                    <a href="customers.php" class="nav-link">
-                        <i class="fas fa-users"></i>
-                        <span>Customers</span>
+                    <a href="loyalty-points.php" class="nav-link">
+                        <i class="fas fa-gift"></i>
+                        <span>Loyalty Points</span>
                     </a>
                 </li>
                 <li class="nav-item">
