@@ -365,58 +365,6 @@ $stats = $stats_stmt->fetch();
                     </div>
                 </div>
 
-                <!-- Order Status Summary -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="data-table">
-                            <div class="p-3">
-                                <h5 class="mb-3">
-                                    <i class="fas fa-tasks me-2"></i>
-                                    Order Status Summary
-                                </h5>
-                                <div class="row text-center">
-                                    <div class="col-md-2">
-                                        <div class="p-2">
-                                            <span class="order-badge status-confirmed d-block mb-2">Confirmed</span>
-                                            <h4 class="mb-0"><?php echo $stats['confirmed_orders']; ?></h4>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="p-2">
-                                            <span class="order-badge status-preparing d-block mb-2">Preparing</span>
-                                            <h4 class="mb-0"><?php echo $stats['preparing_orders']; ?></h4>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="p-2">
-                                            <span class="order-badge status-ready d-block mb-2">Ready</span>
-                                            <h4 class="mb-0"><?php echo $stats['ready_orders']; ?></h4>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="p-2">
-                                            <span class="order-badge status-delivered d-block mb-2">Delivered</span>
-                                            <h4 class="mb-0"><?php echo $stats['delivered_orders']; ?></h4>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="p-2">
-                                            <span class="order-badge status-cancelled d-block mb-2">Cancelled</span>
-                                            <h4 class="mb-0"><?php echo $stats['cancelled_orders']; ?></h4>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="p-2">
-                                            <span class="order-badge status-pending d-block mb-2">Pending</span>
-                                            <h4 class="mb-0"><?php echo $stats['pending_orders']; ?></h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Filters -->
                 <div class="data-table mb-4">
                     <div class="p-3">
