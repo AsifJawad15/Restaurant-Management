@@ -22,8 +22,12 @@ try {
     ");
     $stmt->execute();
     $reviews = $stmt->fetchAll();
+    
+    // Debug: Log the number of reviews found (remove in production)
+    error_log("Reviews fetched: " . count($reviews));
 } catch (Exception $e) {
-    // Silently handle errors for landing page
+    // Log error for debugging (remove in production)
+    error_log("Error fetching reviews: " . $e->getMessage());
     $reviews = [];
 }
 ?>
@@ -175,6 +179,7 @@ try {
     </div>
     
     <!-- Customer Reviews Carousel Section -->
+    <!-- Debug: Reviews count = <?php echo count($reviews); ?> -->
     <?php if (!empty($reviews)): ?>
     <section class="reviews-section">
         <div class="container">
@@ -205,11 +210,11 @@ try {
                                 <!-- Customer Info -->
                                 <div class="customer-info">
                                     <h6 class="mb-2" id="reviewCustomer">Customer Name</h6>
-                                    <small class="text-muted d-block" id="reviewItem">
+                                    <small class="review-info d-block mb-2" id="reviewItem">
                                         <i class="fas fa-utensils me-2"></i>
                                         Menu Item
                                     </small>
-                                    <small class="text-muted d-block" id="reviewDate">
+                                    <small class="review-info d-block" id="reviewDate">
                                         <i class="fas fa-calendar me-2"></i>
                                         Date
                                     </small>
