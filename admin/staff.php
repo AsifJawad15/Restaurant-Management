@@ -21,7 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $first_name = $_POST['first_name'];
             $last_name = $_POST['last_name'];
             $phone = $_POST['phone'];
-            $role = $_POST['role'];
+            $employee_id = $_POST['employee_id'];
+            $position = $_POST['position'];
             $salary = $_POST['salary'];
             $hire_date = $_POST['hire_date'];
             
@@ -31,35 +32,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->fetch()) {
                 $error = "Username or email already exists!";
             } else {
-                // Insert into users table
-                $stmt = $conn->prepare("
-                    INSERT INTO users (username, email, password, first_name, last_name, phone, user_type, created_at) 
-                    VALUES (:username, :email, :password, :first_name, :last_name, :phone, 'staff', NOW())
-                ");
-                $stmt->execute([
-                    ':username' => $username,
-                    ':email' => $email,
-                    ':password' => $password,
-                    ':first_name' => $first_name,
-                    ':last_name' => $last_name,
-                    ':phone' => $phone
-                ]);
-                
-                $user_id = $conn->lastInsertId();
-                
-                // Insert into staff_profiles table
-                $stmt = $conn->prepare("
-                    INSERT INTO staff_profiles (user_id, role, salary, hire_date, status) 
-                    VALUES (:user_id, :role, :salary, :hire_date, 'active')
-                ");
-                $stmt->execute([
-                    ':user_id' => $user_id,
-                    ':role' => $role,
-                    ':salary' => $salary,
-                    ':hire_date' => $hire_date
-                ]);
-                
-                $success = "Staff member added successfully!";
+                // Check if employee_id already exists
+                $stmt = $conn->prepare("SELECT id FROM staff WHERE employee_id = :employee_id");
+                $stmt->execute([':employee_id' => $employee_id]);
+                if ($stmt->fetch()) {
+                    $error = "Employee ID already exists!";
+                } else {
+                    // Insert into users table (using 'admin' for user_type since enum is 'admin' or 'customer')
+                    $stmt = $conn->prepare("
+                        INSERT INTO users (username, email, password_hash, first_name, last_name, phone, user_type, created_at) 
+                        VALUES (:username, :email, :password, :first_name, :last_name, :phone, 'admin', NOW())
+                    ");
+                    $stmt->execute([
+                        ':username' => $username,
+                        ':email' => $email,
+                        ':password' => $password,
+                        ':first_name' => $first_name,
+                        ':last_name' => $last_name,
+                        ':phone' => $phone
+                    ]);
+                    
+                    $user_id = $conn->lastInsertId();
+                    
+                    // Insert into staff table
+                    $stmt = $conn->prepare("
+                        INSERT INTO staff (user_id, employee_id, position, hire_date, salary, is_active) 
+                        VALUES (:user_id, :employee_id, :position, :hire_date, :salary, 1)
+                    ");
+                    $stmt->execute([
+                        ':user_id' => $user_id,
+                        ':employee_id' => $employee_id,
+                        ':position' => $position,
+                        ':hire_date' => $hire_date,
+                        ':salary' => $salary
+                    ]);
+                    
+                    $success = "Staff member added successfully!";
+                }
             }
         } elseif ($_POST['action'] === 'edit') {
             $staff_id = $_POST['staff_id'];
@@ -67,9 +76,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $last_name = $_POST['last_name'];
             $email = $_POST['email'];
             $phone = $_POST['phone'];
-            $role = $_POST['role'];
+            $employee_id = $_POST['employee_id'];
+            $position = $_POST['position'];
             $salary = $_POST['salary'];
-            $status = $_POST['status'];
+            $is_active = isset($_POST['is_active']) ? 1 : 0;
             
             // Update users table
             $stmt = $conn->prepare("
@@ -85,16 +95,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':id' => $staff_id
             ]);
             
-            // Update staff_profiles table
+            // Update staff table
             $stmt = $conn->prepare("
-                UPDATE staff_profiles 
-                SET role = :role, salary = :salary, status = :status 
+                UPDATE staff 
+                SET employee_id = :employee_id, position = :position, salary = :salary, is_active = :is_active 
                 WHERE user_id = :user_id
             ");
             $stmt->execute([
-                ':role' => $role,
+                ':employee_id' => $employee_id,
+                ':position' => $position,
                 ':salary' => $salary,
-                ':status' => $status,
+                ':is_active' => $is_active,
                 ':user_id' => $staff_id
             ]);
             
@@ -102,8 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($_POST['action'] === 'delete') {
             $staff_id = $_POST['staff_id'];
             
-            // Delete from users table (cascade will handle staff_profiles)
-            $stmt = $conn->prepare("DELETE FROM users WHERE id = :id AND user_type = 'staff'");
+            // Delete from users table (cascade will handle staff)
+            $stmt = $conn->prepare("DELETE FROM users WHERE id = :id");
             $stmt->execute([':id' => $staff_id]);
             
             $success = "Staff member deleted successfully!";
@@ -115,35 +126,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get filter parameters
 $search = $_GET['search'] ?? '';
-$role_filter = $_GET['role'] ?? '';
+$position_filter = $_GET['position'] ?? '';
 $status_filter = $_GET['status'] ?? '';
 
 // Build query
 $query = "
-    SELECT u.*, sp.role, sp.salary, sp.hire_date, sp.status
+    SELECT u.*, s.employee_id, s.position, s.salary, s.hire_date, s.is_active
     FROM users u
-    JOIN staff_profiles sp ON u.id = sp.user_id
-    WHERE u.user_type = 'staff'
+    JOIN staff s ON u.id = s.user_id
+    WHERE 1=1
 ";
 
 $params = [];
 
 if ($search) {
-    $query .= " AND (u.first_name LIKE :search OR u.last_name LIKE :search OR u.email LIKE :search OR u.phone LIKE :search)";
+    $query .= " AND (u.first_name LIKE :search OR u.last_name LIKE :search OR u.email LIKE :search OR u.phone LIKE :search OR s.employee_id LIKE :search)";
     $params[':search'] = "%$search%";
 }
 
-if ($role_filter) {
-    $query .= " AND sp.role = :role";
-    $params[':role'] = $role_filter;
+if ($position_filter) {
+    $query .= " AND s.position = :position";
+    $params[':position'] = $position_filter;
 }
 
-if ($status_filter) {
-    $query .= " AND sp.status = :status";
+if ($status_filter !== '') {
+    $query .= " AND s.is_active = :status";
     $params[':status'] = $status_filter;
 }
 
-$query .= " ORDER BY u.created_at DESC";
+$query .= " ORDER BY s.hire_date DESC";
 
 $stmt = $conn->prepare($query);
 $stmt->execute($params);
@@ -153,22 +164,21 @@ $staff_members = $stmt->fetchAll();
 $stats_stmt = $conn->query("
     SELECT 
         COUNT(*) as total_staff,
-        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_staff,
-        SUM(CASE WHEN status = 'on_leave' THEN 1 ELSE 0 END) as on_leave,
-        SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as inactive_staff,
+        SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_staff,
+        SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive_staff,
         AVG(salary) as avg_salary,
-        SUM(salary) as total_payroll
-    FROM staff_profiles
+        SUM(CASE WHEN is_active = 1 THEN salary ELSE 0 END) as total_payroll
+    FROM staff
 ");
 $stats = $stats_stmt->fetch();
 
-// Get role distribution
-$roles_stmt = $conn->query("
-    SELECT role, COUNT(*) as count 
-    FROM staff_profiles 
-    GROUP BY role
+// Get position distribution
+$positions_stmt = $conn->query("
+    SELECT position, COUNT(*) as count 
+    FROM staff 
+    GROUP BY position
 ");
-$role_distribution = $roles_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+$position_distribution = $positions_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 ?>
 
 <!DOCTYPE html>
@@ -377,11 +387,11 @@ $role_distribution = $roles_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
                     
                     <div class="col-lg-3 col-md-6 mb-3">
                         <div class="stats-card">
-                            <div class="stats-icon warning">
-                                <i class="fas fa-umbrella-beach"></i>
+                            <div class="stats-icon danger">
+                                <i class="fas fa-user-times"></i>
                             </div>
-                            <h3 class="stats-number"><?php echo $stats['on_leave']; ?></h3>
-                            <p class="stats-label">On Leave</p>
+                            <h3 class="stats-number"><?php echo $stats['inactive_staff']; ?></h3>
+                            <p class="stats-label">Inactive Staff</p>
                         </div>
                     </div>
                     
@@ -399,41 +409,72 @@ $role_distribution = $roles_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
                     </div>
                 </div>
 
-                <!-- Role Distribution -->
+                <!-- Position Distribution -->
                 <div class="row mb-4">
                     <div class="col-12">
                         <div class="data-table">
                             <div class="p-3">
                                 <h5 class="mb-3">
                                     <i class="fas fa-briefcase me-2"></i>
-                                    Staff by Role
+                                    Staff by Position
+                                </h5>
+                                <div class="row text-center">
+                                    <?php if (!empty($position_distribution)): ?>
+                                        <?php foreach ($position_distribution as $position => $count): ?>
+                                            <div class="col-md-2 col-sm-4 col-6">
+                                                <div class="p-2">
+                                                    <i class="fas fa-user-tie fa-2x text-primary mb-2"></i>
+                                                    <h4 class="mb-0"><?php echo $count; ?></h4>
+                                                    <small><?php echo htmlspecialchars($position); ?></small>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <div class="col-12">
+                                            <p class="text-muted">No staff members yet</p>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Old Position Distribution (keeping for reference) -->
+                <div class="row mb-4" style="display:none;">
+                    <div class="col-12">
+                        <div class="data-table">
+                            <div class="p-3">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-briefcase me-2"></i>
+                                    Staff by Position (old)
                                 </h5>
                                 <div class="row text-center">
                                     <div class="col-md-2">
                                         <div class="p-2">
                                             <i class="fas fa-user-tie fa-2x text-primary mb-2"></i>
-                                            <h4 class="mb-0"><?php echo $role_distribution['manager'] ?? 0; ?></h4>
+                                            <h4 class="mb-0"><?php echo $position_distribution['Manager'] ?? 0; ?></h4>
                                             <small>Managers</small>
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="p-2">
                                             <i class="fas fa-hat-chef fa-2x text-success mb-2"></i>
-                                            <h4 class="mb-0"><?php echo $role_distribution['chef'] ?? 0; ?></h4>
+                                            <h4 class="mb-0"><?php echo $position_distribution['Chef'] ?? 0; ?></h4>
                                             <small>Chefs</small>
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="p-2">
                                             <i class="fas fa-concierge-bell fa-2x text-info mb-2"></i>
-                                            <h4 class="mb-0"><?php echo $role_distribution['waiter'] ?? 0; ?></h4>
+                                            <h4 class="mb-0"><?php echo $position_distribution['Waiter'] ?? 0; ?></h4>
                                             <small>Waiters</small>
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="p-2">
                                             <i class="fas fa-cash-register fa-2x text-warning mb-2"></i>
-                                            <h4 class="mb-0"><?php echo $role_distribution['cashier'] ?? 0; ?></h4>
+                                            <h4 class="mb-0"><?php echo $position_distribution['Cashier'] ?? 0; ?></h4>
                                             <small>Cashiers</small>
                                         </div>
                                     </div>
@@ -464,28 +505,26 @@ $role_distribution = $roles_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
                             <div class="col-md-4">
                                 <label class="form-label">Search Staff</label>
                                 <input type="text" name="search" class="form-control" 
-                                       placeholder="Search by name, email or phone..." 
+                                       placeholder="Search by name, email, phone or employee ID..." 
                                        value="<?php echo htmlspecialchars($search); ?>">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Role</label>
-                                <select name="role" class="form-select">
-                                    <option value="">All Roles</option>
-                                    <option value="manager" <?php echo $role_filter === 'manager' ? 'selected' : ''; ?>>Manager</option>
-                                    <option value="chef" <?php echo $role_filter === 'chef' ? 'selected' : ''; ?>>Chef</option>
-                                    <option value="waiter" <?php echo $role_filter === 'waiter' ? 'selected' : ''; ?>>Waiter</option>
-                                    <option value="cashier" <?php echo $role_filter === 'cashier' ? 'selected' : ''; ?>>Cashier</option>
-                                    <option value="cleaner" <?php echo $role_filter === 'cleaner' ? 'selected' : ''; ?>>Cleaner</option>
-                                    <option value="other" <?php echo $role_filter === 'other' ? 'selected' : ''; ?>>Other</option>
+                                <label class="form-label">Position</label>
+                                <select name="position" class="form-select">
+                                    <option value="">All Positions</option>
+                                    <?php foreach (array_keys($position_distribution) as $pos): ?>
+                                        <option value="<?php echo htmlspecialchars($pos); ?>" <?php echo $position_filter === $pos ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($pos); ?>
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Status</label>
                                 <select name="status" class="form-select">
                                     <option value="">All Status</option>
-                                    <option value="active" <?php echo $status_filter === 'active' ? 'selected' : ''; ?>>Active</option>
-                                    <option value="on_leave" <?php echo $status_filter === 'on_leave' ? 'selected' : ''; ?>>On Leave</option>
-                                    <option value="inactive" <?php echo $status_filter === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                                    <option value="1" <?php echo $status_filter === '1' ? 'selected' : ''; ?>>Active</option>
+                                    <option value="0" <?php echo $status_filter === '0' ? 'selected' : ''; ?>>Inactive</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -506,9 +545,10 @@ $role_distribution = $roles_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
                                 <tr>
                                     <th>ID</th>
                                     <th>Staff Member</th>
+                                    <th>Employee ID</th>
                                     <th>Email</th>
                                     <th>Phone</th>
-                                    <th>Role</th>
+                                    <th>Position</th>
                                     <th>Salary</th>
                                     <th>Hire Date</th>
                                     <th>Status</th>
@@ -537,19 +577,22 @@ $role_distribution = $roles_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
                                                     </div>
                                                 </div>
                                             </td>
+                                            <td><span class="badge bg-secondary"><?php echo htmlspecialchars($staff['employee_id']); ?></span></td>
                                             <td><?php echo htmlspecialchars($staff['email']); ?></td>
                                             <td><?php echo htmlspecialchars($staff['phone'] ?? 'N/A'); ?></td>
                                             <td>
                                                 <span class="badge bg-primary role-badge">
-                                                    <?php echo ucfirst($staff['role']); ?>
+                                                    <?php echo htmlspecialchars($staff['position']); ?>
                                                 </span>
                                             </td>
                                             <td><?php echo formatPrice($staff['salary']); ?></td>
                                             <td><?php echo date('M d, Y', strtotime($staff['hire_date'])); ?></td>
                                             <td>
-                                                <span class="badge status-<?php echo $staff['status']; ?>">
-                                                    <?php echo ucfirst(str_replace('_', ' ', $staff['status'])); ?>
-                                                </span>
+                                                <?php if ($staff['is_active']): ?>
+                                                    <span class="badge bg-success">Active</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-danger">Inactive</span>
+                                                <?php endif; ?>
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm">
@@ -569,7 +612,7 @@ $role_distribution = $roles_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="9" class="text-center py-4">
+                                        <td colspan="10" class="text-center py-4">
                                             <i class="fas fa-info-circle me-2"></i>
                                             No staff members found
                                         </td>
@@ -622,22 +665,18 @@ $role_distribution = $roles_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
                                 <input type="password" name="password" class="form-control" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Role *</label>
-                                <select name="role" class="form-select" required>
-                                    <option value="">Select Role</option>
-                                    <option value="manager">Manager</option>
-                                    <option value="chef">Chef</option>
-                                    <option value="waiter">Waiter</option>
-                                    <option value="cashier">Cashier</option>
-                                    <option value="cleaner">Cleaner</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                <label class="form-label">Employee ID *</label>
+                                <input type="text" name="employee_id" class="form-control" required placeholder="e.g., EMP001">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Position *</label>
+                                <input type="text" name="position" class="form-control" required placeholder="e.g., Manager, Chef, Waiter">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Salary *</label>
                                 <input type="number" step="0.01" name="salary" class="form-control" required>
                             </div>
-                            <div class="col-md-12 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Hire Date *</label>
                                 <input type="date" name="hire_date" class="form-control" required>
                             </div>
@@ -685,28 +724,26 @@ $role_distribution = $roles_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
                                 <label class="form-label">Phone</label>
                                 <input type="tel" name="phone" id="edit_phone" class="form-control">
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Role *</label>
-                                <select name="role" id="edit_role" class="form-select" required>
-                                    <option value="manager">Manager</option>
-                                    <option value="chef">Chef</option>
-                                    <option value="waiter">Waiter</option>
-                                    <option value="cashier">Cashier</option>
-                                    <option value="cleaner">Cleaner</option>
-                                    <option value="other">Other</option>
-                                </select>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Employee ID *</label>
+                                <input type="text" name="employee_id" id="edit_employee_id" class="form-control" required>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Position *</label>
+                                <input type="text" name="position" id="edit_position" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Salary *</label>
                                 <input type="number" step="0.01" name="salary" id="edit_salary" class="form-control" required>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Status *</label>
-                                <select name="status" id="edit_status" class="form-select" required>
-                                    <option value="active">Active</option>
-                                    <option value="on_leave">On Leave</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status</label>
+                                <div class="form-check mt-2">
+                                    <input type="checkbox" name="is_active" id="edit_is_active" class="form-check-input" value="1">
+                                    <label class="form-check-label" for="edit_is_active">
+                                        Active
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -761,9 +798,10 @@ $role_distribution = $roles_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
             document.getElementById('edit_last_name').value = staff.last_name;
             document.getElementById('edit_email').value = staff.email;
             document.getElementById('edit_phone').value = staff.phone || '';
-            document.getElementById('edit_role').value = staff.role;
+            document.getElementById('edit_employee_id').value = staff.employee_id;
+            document.getElementById('edit_position').value = staff.position;
             document.getElementById('edit_salary').value = staff.salary;
-            document.getElementById('edit_status').value = staff.status;
+            document.getElementById('edit_is_active').checked = staff.is_active == 1;
             new bootstrap.Modal(document.getElementById('editModal')).show();
         }
 
