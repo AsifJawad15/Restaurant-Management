@@ -33,15 +33,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log(`Found ${reviewsData.length} reviews for carousel`);
         
-        // Get carousel elements
+        // Get carousel elements by ID (matching the HTML structure)
         const displayElement = document.querySelector('.single-review-display');
-        const ratingElement = document.querySelector('.review-rating');
-        const commentElement = document.querySelector('.review-comment');
-        const customerNameElement = document.querySelector('.customer-name');
-        const reviewDateElement = document.querySelector('.review-date');
+        const ratingElement = document.getElementById('reviewStars');
+        const commentElement = document.getElementById('reviewComment');
+        const customerNameElement = document.getElementById('reviewCustomer');
+        const itemElement = document.getElementById('reviewItem');
+        const reviewDateElement = document.getElementById('reviewDate');
         
         if (!displayElement || !ratingElement || !commentElement || !customerNameElement || !reviewDateElement) {
             console.log('Required carousel elements not found');
+            console.log('Display:', displayElement);
+            console.log('Rating:', ratingElement);
+            console.log('Comment:', commentElement);
+            console.log('Customer:', customerNameElement);
+            console.log('Date:', reviewDateElement);
             return;
         }
         
@@ -83,7 +89,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 ratingElement.innerHTML = createStarRating(parseInt(review.rating));
                 commentElement.textContent = review.comment;
                 customerNameElement.textContent = review.customer_name;
-                reviewDateElement.textContent = `Reviewed on ${formatDate(review.created_at)}`;
+                itemElement.innerHTML = `<i class="fas fa-utensils me-2"></i>${review.item_name || 'Menu Item'}`;
+                reviewDateElement.innerHTML = `<i class="fas fa-calendar me-2"></i>${formatDate(review.created_at)}`;
+                
+                // Update dots if they exist
+                const dots = document.querySelectorAll('.carousel-dots .dot');
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
                 
                 // Fade back in
                 displayElement.style.opacity = '1';
@@ -120,8 +133,8 @@ document.addEventListener('DOMContentLoaded', function() {
         displayElement.addEventListener('mouseleave', startAutoSlide);
         
         // Add navigation buttons if they exist
-        const prevBtn = document.querySelector('.carousel-prev');
-        const nextBtn = document.querySelector('.carousel-next');
+        const prevBtn = document.getElementById('prevReview');
+        const nextBtn = document.getElementById('nextReview');
         
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
@@ -138,6 +151,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(startAutoSlide, 3000); // Resume after 3 seconds
             });
         }
+        
+        // Add click handlers for dots
+        const dots = document.querySelectorAll('.carousel-dots .dot');
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                stopAutoSlide();
+                currentIndex = index;
+                showReview(currentIndex);
+                setTimeout(startAutoSlide, 3000); // Resume after 3 seconds
+            });
+        });
         
         console.log('Reviews carousel initialized with content replacement approach');
     }
