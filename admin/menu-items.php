@@ -163,72 +163,21 @@ if (isset($_GET['edit'])) {
     <link href="../assets/css/admin.css" rel="stylesheet">
 </head>
 <body>
+    <?php
+    // Set page-specific variables
+    $page_title = 'Menu Items';
+    $page_icon = 'fas fa-utensils';
+    $header_actions = '
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
+            <i class="fas fa-plus me-2"></i>Add Menu Item
+        </button>';
+    ?>
     <div class="admin-wrapper">
-        <!-- Sidebar -->
-        <nav class="admin-sidebar">
-            <div class="sidebar-header">
-                <i class="fas fa-utensils sidebar-logo"></i>
-                <h4 class="sidebar-title">Delicious Restaurant</h4>
-                <small class="text-muted">Admin Panel</small>
-            </div>
-            
-            <ul class="sidebar-nav">
-                <li class="nav-item">
-                    <a href="dashboard.php" class="nav-link">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                
-                <div class="nav-section">Menu Management</div>
-                <li class="nav-item">
-                    <a href="categories.php" class="nav-link">
-                        <i class="fas fa-tags"></i>
-                        <span>Categories</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="menu-items.php" class="nav-link active">
-                        <i class="fas fa-utensils"></i>
-                        <span>Menu Items</span>
-                    </a>
-                </li>
-                
-                <div class="nav-section">Settings</div>
-                <li class="nav-item">
-                    <a href="logout.php" class="nav-link">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+        <?php include 'includes/sidebar.php'; ?>
 
         <!-- Main Content -->
         <div class="admin-content">
-            <!-- Top Header -->
-            <header class="admin-header">
-                <div class="header-content">
-                    <h1 class="page-title">Menu Items</h1>
-                    <div class="header-actions">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
-                            <i class="fas fa-plus me-2"></i>Add Menu Item
-                        </button>
-                        <div class="dropdown admin-dropdown ms-3">
-                            <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <div class="admin-avatar">
-                                    <?php echo strtoupper(substr($_SESSION['admin_name'] ?? 'A', 0, 1)); ?>
-                                </div>
-                                <span><?php echo $_SESSION['admin_name'] ?? 'Admin'; ?></span>
-                                <i class="fas fa-chevron-down ms-2"></i>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <?php include 'includes/header.php'; ?>
 
             <!-- Main Content Area -->
             <main class="main-content">
