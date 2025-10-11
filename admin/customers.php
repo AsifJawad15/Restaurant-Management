@@ -56,7 +56,7 @@ if ($loyalty_tier) {
     $params[':loyalty_tier'] = $loyalty_tier;
 }
 
-$query .= " GROUP BY u.id";
+$query .= " GROUP BY u.id, cp.address, cp.city, cp.state, cp.zip_code, cp.loyalty_points, cp.loyalty_tier, cp.total_spent";
 
 // Add sorting
 switch ($sort_by) {

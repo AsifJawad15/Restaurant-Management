@@ -30,6 +30,8 @@ CREATE TABLE customer_profiles (
     zip_code VARCHAR(10),
     date_of_birth DATE,
     loyalty_points INT DEFAULT 0,
+    loyalty_tier ENUM('bronze', 'silver', 'gold', 'platinum') DEFAULT 'bronze',
+    total_spent DECIMAL(10,2) DEFAULT 0.00,
     preferred_payment_method VARCHAR(20),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

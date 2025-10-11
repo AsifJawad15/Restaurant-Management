@@ -5,6 +5,11 @@
  * Common sidebar component for all admin pages
  */
 
+// Include config file if not already included
+if (!function_exists('getDBConnection')) {
+    require_once '../includes/config.php';
+}
+
 // Get current page name for active link highlighting
 $current_page = basename($_SERVER['PHP_SELF']);
 

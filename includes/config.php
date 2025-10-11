@@ -51,13 +51,11 @@ function getDBConnection() {
     return $database->getConnection();
 }
 
-// Security configurations - MUST be set BEFORE session_start()
-ini_set('session.cookie_httponly', 1);
-ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_secure', 0); // Set to 1 for HTTPS
-
-// Session configuration
+// Security configurations - only set if session is not active
 if (session_status() == PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
+    ini_set('session.cookie_secure', 0); // Set to 1 for HTTPS
     session_start();
 }
 
@@ -120,7 +118,11 @@ function verifyCSRFToken($token) {
  * Format price for display
  */
 function formatPrice($price) {
-    return '$' . number_format($price, 2);
+    // Handle null, empty, or non-numeric values
+    if ($price === null || $price === '' || !is_numeric($price)) {
+        $price = 0;
+    }
+    return '$' . number_format((float)$price, 2);
 }
 
 /**

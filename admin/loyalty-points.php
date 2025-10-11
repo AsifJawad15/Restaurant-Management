@@ -10,6 +10,16 @@ requireAdminLogin();
 $success = '';
 $error = '';
 
+// Initialize stats with default values
+$stats = [
+    'total_customers' => 0,
+    'total_points' => 0,
+    'avg_points' => 0,
+    'max_points' => 0
+];
+$customers = [];
+$tierDistribution = [];
+
 try {
     $conn = getDBConnection();
     
@@ -103,12 +113,15 @@ try {
     $stmt = $conn->query("
         SELECT 
             COUNT(*) as total_customers,
-            SUM(loyalty_points) as total_points,
-            AVG(loyalty_points) as avg_points,
-            MAX(loyalty_points) as max_points
+            COALESCE(SUM(loyalty_points), 0) as total_points,
+            COALESCE(AVG(loyalty_points), 0) as avg_points,
+            COALESCE(MAX(loyalty_points), 0) as max_points
         FROM customer_profiles
     ");
-    $stats = $stmt->fetch();
+    $statsResult = $stmt->fetch();
+    if ($statsResult) {
+        $stats = $statsResult;
+    }
     
     // Get tier distribution
     $stmt = $conn->query("
@@ -133,6 +146,26 @@ $tierBenefits = [
 ];
 
 function getTierBadgeClass($tier) {
+    $classes = [
+        'bronze' => 'secondary',
+        'silver' => 'light',
+        'gold' => 'warning',
+        'platinum' => 'primary'
+    ];
+    return $classes[$tier] ?? 'secondary';
+}
+
+/**
+ * Format number for display, handling null values
+ */
+function formatNumber($number, $decimals = 0) {
+    if ($number === null || $number === '' || !is_numeric($number)) {
+        $number = 0;
+    }
+    return number_format((float)$number, $decimals);
+}
+
+function getTierColorClass($tier) {
     $classes = [
         'bronze' => 'bg-warning',
         'silver' => 'bg-secondary',
@@ -265,7 +298,7 @@ function calculateDiscount($points) {
                         <div class="stat-icon text-primary">
                             <i class="fas fa-users"></i>
                         </div>
-                        <div class="stat-value"><?php echo number_format($stats['total_customers']); ?></div>
+                        <div class="stat-value"><?php echo formatNumber($stats['total_customers']); ?></div>
                         <div class="stat-label">Total Customers</div>
                     </div>
                     
@@ -273,7 +306,7 @@ function calculateDiscount($points) {
                         <div class="stat-icon text-warning">
                             <i class="fas fa-star"></i>
                         </div>
-                        <div class="stat-value"><?php echo number_format($stats['total_points']); ?></div>
+                        <div class="stat-value"><?php echo formatNumber($stats['total_points']); ?></div>
                         <div class="stat-label">Total Points Issued</div>
                     </div>
                     
@@ -281,7 +314,7 @@ function calculateDiscount($points) {
                         <div class="stat-icon text-success">
                             <i class="fas fa-chart-line"></i>
                         </div>
-                        <div class="stat-value"><?php echo number_format($stats['avg_points']); ?></div>
+                        <div class="stat-value"><?php echo formatNumber($stats['avg_points'], 1); ?></div>
                         <div class="stat-label">Average Points</div>
                     </div>
                     
@@ -289,7 +322,7 @@ function calculateDiscount($points) {
                         <div class="stat-icon text-danger">
                             <i class="fas fa-trophy"></i>
                         </div>
-                        <div class="stat-value"><?php echo number_format($stats['max_points']); ?></div>
+                        <div class="stat-value"><?php echo formatNumber($stats['max_points']); ?></div>
                         <div class="stat-label">Highest Points</div>
                     </div>
                 </div>
