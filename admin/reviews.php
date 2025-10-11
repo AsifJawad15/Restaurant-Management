@@ -120,14 +120,30 @@ $rating_distribution = $rating_dist_stmt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="../assets/css/admin.css" rel="stylesheet">
-    <style>
-        .review-card {
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .review-card:hover {
-            transform: translateY(-2px);
+</head>
+<body>
+    <?php
+    // Set page-specific variables
+    $page_title = 'Reviews Management';
+    $page_icon = 'fas fa-star';
+    ?>
+    <div class="admin-wrapper">
+        <?php include 'includes/sidebar.php'; ?>
+
+        <!-- Main Content -->
+        <div class="admin-content">
+            <?php include 'includes/header.php'; ?>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <style>
+                    .review-card {
+                        border: 1px solid #dee2e6;
+                        border-radius: 10px;
+                        transition: transform 0.2s, box-shadow 0.2s;
+                    }
+                    .review-card:hover {
+                        transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .star-rating {
@@ -148,52 +164,20 @@ $rating_distribution = $rating_dist_stmt->fetchAll();
             background: #f8f9fa;
             border-radius: 10px;
         }
-    </style>
-</head>
-<body>
+                </style>
 
-<!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard.php">
-            <i class="fas fa-utensils me-2"></i>Restaurant Admin
-        </a>
-        <div class="navbar-nav ms-auto">
-            <a class="nav-link" href="dashboard.php">
-                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-            </a>
-            <a class="nav-link" href="menu-items.php">
-                <i class="fas fa-utensils me-1"></i>Menu
-            </a>
-            <a class="nav-link" href="reservations.php">
-                <i class="fas fa-calendar me-1"></i>Reservations
-            </a>
-            <a class="nav-link active" href="reviews.php">
-                <i class="fas fa-star me-1"></i>Reviews
-            </a>
-            <a class="nav-link" href="logout.php">
-                <i class="fas fa-sign-out-alt me-1"></i>Logout
-            </a>
-        </div>
-    </div>
-</nav>
+                <!-- Display success/error messages -->
+                <?php if (isset($success_message)): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($success_message); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
 
-<div class="container-fluid my-4">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="mb-4">
-                <i class="fas fa-star text-warning me-3"></i>
-                Reviews Management
-            </h1>
-            
-            <?php if (isset($success_message)): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i><?php echo $success_message; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
+                <h1 class="mb-4">
+                    <i class="fas fa-star text-warning me-3"></i>
+                    Reviews Management
+                </h1>
 
     <!-- Statistics Row -->
     <div class="row mb-4">
@@ -512,5 +496,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+            </main>
+        </div>
+    </div>
 </body>
 </html>

@@ -91,13 +91,29 @@ $today_stats = $stats_stmt->fetch();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="../assets/css/admin.css" rel="stylesheet">
-    <style>
-        .status-badge {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.85rem;
-        }
+</head>
+<body>
+    <?php
+    // Set page-specific variables
+    $page_title = 'Reservations Management';
+    $page_icon = 'fas fa-calendar';
+    ?>
+    <div class="admin-wrapper">
+        <?php include 'includes/sidebar.php'; ?>
+
+        <!-- Main Content -->
+        <div class="admin-content">
+            <?php include 'includes/header.php'; ?>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <style>
+                    .status-badge {
+                        padding: 0.5rem 1rem;
+                        border-radius: 20px;
+                        font-weight: bold;
+                        font-size: 0.85rem;
+                    }
         .status-pending { background: #fff3cd; color: #856404; }
         .status-confirmed { background: #d1ecf1; color: #0c5460; }
         .status-seated { background: #d4edda; color: #155724; }
@@ -121,48 +137,11 @@ $today_stats = $stats_stmt->fetch();
             margin-bottom: 1rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="fas fa-utensils me-2"></i>Restaurant Admin
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-1"></i>Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="categories.php"><i class="fas fa-tags me-1"></i>Categories</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="menu-items.php"><i class="fas fa-utensils me-1"></i>Menu Items</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="reservations.php"><i class="fas fa-calendar-alt me-1"></i>Reservations</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="order-details.php"><i class="fas fa-receipt me-1"></i>Orders</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+                </style>
 
-    <div class="container-fluid py-4">
-        <div class="row">
-            <div class="col-12">
-                <h2><i class="fas fa-calendar-alt me-2 text-primary"></i>Reservations Management</h2>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-calendar text-primary me-2"></i>Reservations Management</h1>
+                </div>
                 
                 <?php if ($success): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -397,10 +376,11 @@ $today_stats = $stats_stmt->fetch();
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
-            </div>
-        </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+            </main>
+        </div>
+    </div>
 </body>
 </html>
