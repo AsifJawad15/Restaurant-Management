@@ -158,44 +158,6 @@ $page_icon = 'fas fa-tachometer-alt';
                     </div>
                 </div>
 
-                <!-- Menu Management Quick Actions -->
-                <div class="row mb-4">
-                    <div class="col-lg-12">
-                        <div class="stats-card">
-                            <h5 class="mb-3">
-                                <i class="fas fa-tachometer-alt me-2"></i>
-                                Quick Menu Actions
-                            </h5>
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <a href="categories.php" class="btn btn-outline-primary w-100 mb-2">
-                                        <i class="fas fa-tags me-2"></i>
-                                        Manage Categories
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="menu-items.php" class="btn btn-outline-primary w-100 mb-2">
-                                        <i class="fas fa-utensils me-2"></i>
-                                        Manage Menu Items
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="menu-items.php?category=0" class="btn btn-outline-info w-100 mb-2">
-                                        <i class="fas fa-star me-2"></i>
-                                        View Featured Items
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="#" onclick="alert('Coming soon!')" class="btn btn-outline-success w-100 mb-2">
-                                        <i class="fas fa-chart-bar me-2"></i>
-                                        Menu Analytics
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Recent Orders and Popular Items -->
                 <div class="row">
                     <div class="col-lg-8">
