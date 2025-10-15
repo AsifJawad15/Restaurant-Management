@@ -1,6 +1,7 @@
 <?php
 /**
- * 
+ * Admin Dashboard - Simplified Approach
+ * ASIF - Backend & Database Developer
  */
 
 // Include simple authentication
@@ -126,12 +127,11 @@ $adminInfo = getAdminInfo();
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="../assets/css/admin.css" rel="stylesheet">
 </head>
-<body class="admin-layout">
-    <div class="admin-wrapper">
-        <?php include 'includes/sidebar.php'; ?>
-        
-        <div class="admin-content">
-            <?php include 'includes/header.php'; ?>
+<body>
+    <?php include 'includes/sidebar.php'; ?>
+    
+    <div class="main-content">
+        <?php include 'includes/header.php'; ?>
         
         <div class="container-fluid py-4">
             <?php if ($error): ?>
@@ -292,7 +292,6 @@ $adminInfo = getAdminInfo();
                         </div>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
     </div>

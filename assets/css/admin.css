@@ -165,6 +165,11 @@ body {
 }
 
 /* Dashboard Layout */
+.admin-layout {
+    margin: 0;
+    padding: 0;
+}
+
 .admin-wrapper {
     display: flex;
     min-height: 100vh;
@@ -250,11 +255,14 @@ body {
 }
 
 /* Main Content */
-.admin-content {
+.admin-content,
+.main-content {
     flex: 1;
     margin-left: 280px;
     background: var(--background-light);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Top Navigation */
@@ -313,6 +321,7 @@ body {
 /* Main Content Area */
 .main-content {
     padding: 2rem;
+    flex: 1;
 }
 
 /* Cards */
@@ -558,7 +567,8 @@ body {
         transform: translateX(0);
     }
     
-    .admin-content {
+    .admin-content,
+    .main-content {
         margin-left: 0;
     }
     

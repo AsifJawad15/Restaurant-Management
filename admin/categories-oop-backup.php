@@ -1,17 +1,25 @@
 <?php
 /**
- * Menu Categories Management - Simple Auth Version
+ * Menu Categories Management - OOP Implementation
  * ASIF - Backend & Database Developer
  */
 
-// Include simple authentication
-require_once 'includes/simple-auth.php';
+// Load our OOP classes
+require_once '../src/autoload.php';
 
-// Require admin login
-requireAdminLogin();
+use RestaurantMS\Models\Category;
+use RestaurantMS\Services\AuthService;
+use RestaurantMS\Core\Validator;
+use RestaurantMS\Core\Response;
 
-// Get database connection
-$pdo = getDatabaseConnection();
+session_start();
+
+// Check admin authentication
+$authService = AuthService::getInstance();
+if (!$authService->isAdminLoggedIn()) {
+    header('Location: login.php');
+    exit();
+}
 
 $success = '';
 $error = '';
@@ -20,30 +28,23 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['add_category'])) {
         try {
-            $name = trim($_POST['name']);
-            $description = trim($_POST['description']);
-            $sort_order = (int)$_POST['sort_order'];
+            $categoryData = [
+                'name' => trim($_POST['name']),
+                'description' => trim($_POST['description']),
+                'sort_order' => (int)$_POST['sort_order'],
+                'is_active' => true
+            ];
             
-            if (empty($name)) {
-                $error = 'Category name is required.';
+            $validator = new Validator($categoryData);
+            $validator->required(['name']);
+            
+            if ($validator->isValid()) {
+                $category = Category::create($categoryData);
+                $success = 'Category added successfully!';
             } else {
-                // Check if category with same name exists
-                $stmt = $pdo->prepare("SELECT COUNT(*) FROM categories WHERE name = ?");
-                $stmt->execute([$name]);
-                
-                if ($stmt->fetchColumn() > 0) {
-                    $error = 'A category with this name already exists.';
-                } else {
-                    // Insert new category
-                    $stmt = $pdo->prepare("
-                        INSERT INTO categories (name, description, sort_order, is_active, created_at) 
-                        VALUES (?, ?, ?, 1, NOW())
-                    ");
-                    $stmt->execute([$name, $description, $sort_order]);
-                    $success = 'Category added successfully!';
-                }
+                $error = $validator->getFirstError();
             }
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             $error = 'Error adding category: ' . $e->getMessage();
         }
     }
@@ -51,32 +52,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['update_category'])) {
         try {
             $id = (int)$_POST['category_id'];
-            $name = trim($_POST['name']);
-            $description = trim($_POST['description']);
-            $sort_order = (int)$_POST['sort_order'];
-            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            $category = Category::find($id);
             
-            if (empty($name)) {
-                $error = 'Category name is required.';
-            } else {
-                // Check if another category with same name exists (excluding current)
-                $stmt = $pdo->prepare("SELECT COUNT(*) FROM categories WHERE name = ? AND id != ?");
-                $stmt->execute([$name, $id]);
+            if ($category) {
+                $updateData = [
+                    'name' => trim($_POST['name']),
+                    'description' => trim($_POST['description']),
+                    'sort_order' => (int)$_POST['sort_order'],
+                    'is_active' => isset($_POST['is_active'])
+                ];
                 
-                if ($stmt->fetchColumn() > 0) {
-                    $error = 'A category with this name already exists.';
-                } else {
-                    // Update category
-                    $stmt = $pdo->prepare("
-                        UPDATE categories 
-                        SET name = ?, description = ?, sort_order = ?, is_active = ?
-                        WHERE id = ?
-                    ");
-                    $stmt->execute([$name, $description, $sort_order, $is_active, $id]);
+                $validator = new Validator($updateData);
+                $validator->required(['name']);
+                
+                if ($validator->isValid()) {
+                    $category->fill($updateData);
+                    $category->save();
                     $success = 'Category updated successfully!';
+                } else {
+                    $error = $validator->getFirstError();
                 }
+            } else {
+                $error = 'Category not found.';
             }
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             $error = 'Error updating category: ' . $e->getMessage();
         }
     }
@@ -84,20 +83,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['delete_category'])) {
         try {
             $id = (int)$_POST['category_id'];
+            $category = Category::find($id);
             
-            // Check if category has menu items
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM menu_items WHERE category_id = ?");
-            $stmt->execute([$id]);
-            
-            if ($stmt->fetchColumn() > 0) {
-                $error = 'Cannot delete category. It has menu items associated with it.';
-            } else {
-                // Delete category
-                $stmt = $pdo->prepare("DELETE FROM categories WHERE id = ?");
-                $stmt->execute([$id]);
+            if ($category) {
+                $category->delete();
                 $success = 'Category deleted successfully!';
+            } else {
+                $error = 'Category not found.';
             }
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             $error = 'Error deleting category: ' . $e->getMessage();
         }
     }
@@ -105,17 +99,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 // Get all categories
 try {
-    $stmt = $pdo->query("
-        SELECT c.*, 
-               COUNT(mi.id) as menu_items_count 
-        FROM categories c 
-        LEFT JOIN menu_items mi ON c.id = mi.category_id 
-        GROUP BY c.id 
-        ORDER BY c.sort_order ASC, c.name ASC
-    ");
-    $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    $error = 'Error loading categories: ' . $e->getMessage();
+    $categories = Category::orderBy('sort_order ASC, name ASC');
+} catch (Exception $e) {
+    $error = 'Error fetching categories: ' . $e->getMessage();
     $categories = [];
 }
 
@@ -124,13 +110,11 @@ $edit_category = null;
 if (isset($_GET['edit'])) {
     $edit_id = (int)$_GET['edit'];
     try {
-        $stmt = $pdo->prepare("SELECT * FROM categories WHERE id = ?");
-        $stmt->execute([$edit_id]);
-        $edit_category = $stmt->fetch(PDO::FETCH_ASSOC);
+        $edit_category = Category::find($edit_id);
         if (!$edit_category) {
             $error = 'Category not found.';
         }
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         $error = 'Error fetching category: ' . $e->getMessage();
     }
 }

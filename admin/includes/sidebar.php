@@ -1,24 +1,19 @@
 <?php
 /**
- * Admin Sidebar Navigation
- * ASIF - Backend & Database Developer
- * Common sidebar component for all admin pages
+ * Admin Sidebar - Simple Version
  */
-
-// Include config file if not already included
-if (!function_exists('getDBConnection')) {
-    require_once '../includes/config.php';
-}
 
 // Get current page name for active link highlighting
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// Get pending orders count if not already set
-if (!isset($pendingOrders)) {
+// Get pending orders count using simple approach
+$pendingOrders = 0;
+if (function_exists('getDatabaseConnection')) {
     try {
-        $conn = getDBConnection();
-        $stmt = $conn->query("SELECT COUNT(*) as total FROM orders WHERE status IN ('pending', 'confirmed', 'preparing')");
-        $pendingOrders = $stmt->fetch()['total'];
+        $pdo = getDatabaseConnection();
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM orders WHERE status = 'pending'");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $pendingOrders = $result ? $result['count'] : 0;
     } catch (PDOException $e) {
         $pendingOrders = 0;
     }

@@ -1,7 +1,6 @@
 <?php
 /**
- * Admin Login Page - Simplified Procedural Approach
- * ASIF - Backend & Database Developer
+ * 
  */
 
 session_start();

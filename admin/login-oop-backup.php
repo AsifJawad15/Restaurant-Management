@@ -1,21 +1,31 @@
 <?php
 /**
- * Admin Login Page - Simplified Procedural Approach
+ * Admin Login Page - OOP Implementation
  * ASIF - Backend & Database Developer
  */
 
+// Load our OOP classes
+require_once '../src/autoload.php';
+
+use RestaurantMS\Core\Response;
+use RestaurantMS\Core\Validator;
+use RestaurantMS\Services\AuthService;
+
 session_start();
 
-// Database connection
-try {
-    $pdo = new PDO("mysql:host=localhost;dbname=restaurant_management", "root", "");
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
+// Initialize services
+$authService = AuthService::getInstance();
+$response = new Response();
+
+// Clear any existing sessions if requested
+if (isset($_GET['clear'])) {
+    $authService->logout();
+    header('Location: login.php');
+    exit();
 }
 
-// Check if already logged in
-if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+// Redirect if already logged in
+if ($authService->isAdminLoggedIn()) {
     header('Location: dashboard.php');
     exit();
 }
@@ -23,35 +33,33 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
 $error = '';
 $success = '';
 
-// Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
     
-    if (empty($email) || empty($password)) {
-        $error = 'Please fill in all fields.';
+    // Validate input
+    $validator = new Validator([
+        'email' => $email,
+        'password' => $password
+    ]);
+    
+    $validator->required(['email', 'password'])
+             ->email('email');
+    
+    if (!$validator->isValid()) {
+        $error = $validator->getFirstError();
     } else {
         try {
-            // Find user by email
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND user_type = 'admin'");
-            $stmt->execute([$email]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $loginResult = $authService->loginAdmin($email, $password);
             
-            if ($user && password_verify($password, $user['password_hash']) && $user['is_active']) {
-                // Set session variables
-                $_SESSION['admin_logged_in'] = true;
-                $_SESSION['admin_id'] = $user['id'];
-                $_SESSION['admin_email'] = $user['email'];
-                $_SESSION['admin_name'] = $user['first_name'] . ' ' . $user['last_name'];
-                
-                // Redirect to dashboard
+            if ($loginResult) {
                 header('Location: dashboard.php');
                 exit();
             } else {
                 $error = 'Invalid email or password.';
             }
-        } catch (PDOException $e) {
-            $error = 'Database error occurred.';
+        } catch (Exception $e) {
+            $error = 'Login error: ' . $e->getMessage();
         }
     }
 }
@@ -159,13 +167,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         <?php if ($error): ?>
             <div class="alert alert-danger" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i><?php echo htmlspecialchars($error); ?>
+                <i class="fas fa-exclamation-triangle me-2"></i><?php echo $error; ?>
             </div>
         <?php endif; ?>
         
         <?php if ($success): ?>
             <div class="alert alert-success" role="alert">
-                <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($success); ?>
+                <i class="fas fa-check-circle me-2"></i><?php echo $success; ?>
             </div>
         <?php endif; ?>
         
