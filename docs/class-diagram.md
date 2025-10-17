@@ -1,4 +1,3 @@
-```mermaid
 ---
 title: Restaurant Management System - Class Diagram
 ---
@@ -392,6 +391,149 @@ classDiagram
         +markOverdueAsNoShow() int
     }
 
+    class MenuService {
+        <<Service>>
+        -Database db
+        -MenuRepository menuRepository
+        +getAllMenuItems(array filters) array
+        +getMenuItemsByCategory(int categoryId) array
+        +getFeaturedItems() array
+        +getPopularItems(int limit) array
+        +createMenuItem(array data) MenuItem
+        +updateMenuItem(int id, array data) bool
+        +deleteMenuItem(int id) bool
+        +toggleAvailability(int id) bool
+        +updatePrice(int id, float price) bool
+    }
+
+    class CustomerService {
+        <<Service>>
+        -CustomerRepository customerRepository
+        -CustomerStats customerStats
+        +getAllCustomers(array filters, string sortBy) array
+        +getCustomerById(int id) Customer
+        +createCustomer(array data) Customer
+        +updateCustomer(int id, array data) bool
+        +deleteCustomer(int id) bool
+        +getCustomerStats(int id) array
+        +updateLoyaltyPoints(int id, int points) bool
+        +getTopCustomers(int limit) array
+    }
+
+    class CategoryService {
+        <<Service>>
+        -Database db
+        +getAllCategories() array
+        +getActiveCategories() array
+        +createCategory(array data) Category
+        +updateCategory(int id, array data) bool
+        +deleteCategory(int id) bool
+        +toggleStatus(int id) bool
+        +reorderCategories(array order) bool
+    }
+
+    %% Repository Classes
+    class MenuRepository {
+        <<Repository>>
+        -Database db
+        +findById(int id) MenuItem
+        +findByCategory(int categoryId) array
+        +findFeatured() array
+        +findAvailable() array
+        +search(string query) array
+        +getPopular(int limit) array
+        +create(array data) MenuItem
+        +update(int id, array data) bool
+        +delete(int id) bool
+    }
+
+    class CustomerRepository {
+        <<Repository>>
+        -Database db
+        +findById(int id) Customer
+        +findByEmail(string email) Customer
+        +findAll(array filters) array
+        +create(array data) Customer
+        +update(int id, array data) bool
+        +delete(int id) bool
+        +getByLoyaltyTier(string tier) array
+        +search(string query) array
+    }
+
+    class CustomerStats {
+        <<Repository>>
+        -Database db
+        +getTotalSpent(int customerId) float
+        +getOrderCount(int customerId) int
+        +getAverageOrderValue(int customerId) float
+        +getLastOrderDate(int customerId) string
+        +getFavoriteItems(int customerId, int limit) array
+        +getLoyaltyPointsHistory(int customerId) array
+        +getVisitFrequency(int customerId) array
+    }
+
+    class CategoryRepository {
+        <<Repository>>
+        -Database db
+        +findById(int id) Category
+        +findAll() array
+        +findActive() array
+        +create(array data) Category
+        +update(int id, array data) bool
+        +delete(int id) bool
+        +getWithItemCount() array
+    }
+
+    %% Controller Classes
+    class BaseAdminController {
+        <<Abstract>>
+        <<Controller>>
+        #AuthService authService
+        #Response response
+        +__construct()
+        #requireAuth() void
+        #getCurrentAdmin() User
+        #validateInput(array data, array rules) array
+        #jsonResponse(mixed data, int status) void
+        #redirectWithMessage(string url, string message) void
+    }
+
+    class CustomerController {
+        <<Controller>>
+        -CustomerService customerService
+        +index() void
+        +show(int id) void
+        +create() void
+        +store(array data) void
+        +edit(int id) void
+        +update(int id, array data) void
+        +destroy(int id) void
+        +stats(int id) void
+    }
+
+    class MenuController {
+        <<Controller>>
+        -MenuService menuService
+        +index() void
+        +show(int id) void
+        +create() void
+        +store(array data) void
+        +edit(int id) void
+        +update(int id, array data) void
+        +destroy(int id) void
+        +toggleAvailability(int id) void
+    }
+
+    %% View Classes
+    class CustomerView {
+        <<View>>
+        +renderCustomerList(array customers) string
+        +renderCustomerProfile(Customer customer) string
+        +renderCustomerStats(array stats) string
+        +renderCustomerForm(Customer customer) string
+        +renderOrderHistory(array orders) string
+    }
+
     %% Helper Classes
     class Response {
         <<Utility>>
@@ -458,6 +600,30 @@ classDiagram
     OrderManager ..> MenuItem : uses
     ReservationManager ..> Reservation : manages
     ReservationManager ..> Customer : serves
+    MenuService ..> MenuRepository : uses
+    MenuService ..> MenuItem : manages
+    CustomerService ..> CustomerRepository : uses
+    CustomerService ..> CustomerStats : uses
+    CustomerService ..> Customer : manages
+    CategoryService ..> CategoryRepository : uses
+    CategoryService ..> Category : manages
+
+    %% Repository Dependencies
+    MenuRepository ..> MenuItem : stores
+    CustomerRepository ..> Customer : stores
+    CustomerStats ..> Customer : analyzes
+    CategoryRepository ..> Category : stores
+
+    %% Controller Dependencies
+    BaseAdminController <|-- CustomerController
+    BaseAdminController <|-- MenuController
+    BaseAdminController ..> AuthService : uses
+    BaseAdminController ..> Response : uses
+    CustomerController ..> CustomerService : uses
+    MenuController ..> MenuService : uses
+
+    %% View Dependencies
+    CustomerView ..> Customer : renders
 
     %% Utility Dependencies
     BaseModel ..> Validator : validates with
@@ -474,6 +640,9 @@ classDiagram
     %% Styling
     classDef model fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef service fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef repository fill:#f1f8e9,stroke:#33691e,stroke-width:2px
+    classDef controller fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef view fill:#ede7f6,stroke:#311b92,stroke-width:2px
     classDef core fill:#fff3e0,stroke:#e65100,stroke-width:2px
     classDef utility fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
     classDef exception fill:#ffebee,stroke:#c62828,stroke-width:2px
@@ -489,6 +658,17 @@ classDiagram
     class AuthService:::service
     class OrderManager:::service
     class ReservationManager:::service
+    class MenuService:::service
+    class CustomerService:::service
+    class CategoryService:::service
+    class MenuRepository:::repository
+    class CustomerRepository:::repository
+    class CustomerStats:::repository
+    class CategoryRepository:::repository
+    class BaseAdminController:::controller
+    class CustomerController:::controller
+    class MenuController:::controller
+    class CustomerView:::view
     class Config:::core
     class Database:::core
     class Response:::utility
@@ -497,4 +677,3 @@ classDiagram
     class DatabaseException:::exception
     class AuthException:::exception
     class ValidationException:::exception
-```
