@@ -34,7 +34,7 @@ set_exception_handler(function ($exception) {
     error_log("Uncaught exception: " . $exception->getMessage());
     
     // In development, show detailed error
-    if (defined('APP_ENV') && APP_ENV === 'development') {
+    if (defined('APP_ENV') ) {
         echo "<h1>Error</h1>";
         echo "<p>" . $exception->getMessage() . "</p>";
         echo "<pre>" . $exception->getTraceAsString() . "</pre>";
@@ -46,7 +46,7 @@ set_exception_handler(function ($exception) {
 });
 
 // Set error reporting based on environment
-if (defined('APP_ENV') && APP_ENV === 'development') {
+if (defined('APP_ENV') ) {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
 } else {
